@@ -25,6 +25,36 @@ func sumWorker(nums chan int, out chan int) {
 // `sumWorker` to find the sum of the values concurrently.
 // You should use `checkError` to handle potential errors.
 // Do NOT modify function signature.
+// func sum(num int, fileName string) int {
+// 	// TODO: implement me
+// 	// HINT: use `readInts` and `sumWorkers`
+// 	// HINT: used buffered channels for splitting numbers between workers
+// 	file, err := os.Open(fileName)
+// 	checkError(err)
+// 	ints, err := readInts(file)
+// 	checkError(err)
+// 	results := make(chan int)
+// 	queueSize := len(ints) / num
+// 	for i := 0; i < num; i++ {
+// 		if i == num-1 {
+// 			queueSize = len(ints)
+// 		}
+// 		queue := make(chan int, queueSize)
+// 		for j := 0; j < queueSize; j++ {
+// 			queue <- ints[j]
+// 		}
+// 		close(queue)
+// 		go sumWorker(queue, results)
+// 		ints = ints[queueSize:]
+// 	}
+
+// 	sum := 0
+// 	for i := 0; i < num; i++ {
+// 		sum += <-results
+// 	}
+// 	return sum
+// }
+
 func sum(num int, fileName string) int {
 	// TODO: implement me
 	// HINT: use `readInts` and `sumWorkers`
@@ -34,18 +64,19 @@ func sum(num int, fileName string) int {
 	ints, err := readInts(file)
 	checkError(err)
 	results := make(chan int)
-	queueSize := len(ints) / num
+	queueSize := len(ints) - 1/num + 1
+	channels := make([]chan int, num)
 	for i := 0; i < num; i++ {
-		if i == num-1 {
-			queueSize = len(ints)
-		}
-		queue := make(chan int, queueSize)
-		for j := 0; j < queueSize; j++ {
-			queue <- ints[j]
-		}
-		close(queue)
-		go sumWorker(queue, results)
-		ints = ints[queueSize:]
+		channels[i] = make(chan int, queueSize)
+	}
+
+	for i := 0; i < len(ints); i++ {
+		channels[i%num] <- ints[i]
+	}
+
+	for i := 0; i < num; i++ {
+		close(channels[i])
+		go sumWorker(channels[i], results)
 	}
 
 	sum := 0

@@ -21,12 +21,12 @@ func topWords(path string, numWords int, charThreshold int) []WordCount {
 	// TODO: implement me
 	// HINT: You may find the `strings.Fields` and `strings.ToLower` functions helpful
 	// HINT: To keep only alphanumeric characters, use the regex "[^0-9a-zA-Z]+"
-	bytes, err := ioutil.ReadFile(path)
+	contents, err := ioutil.ReadFile(path)
 	checkError(err)
-	contents := string(bytes)
-	strings := strings.Fields(contents)
+	s := string(contents)
+	fields := strings.Fields(s)
 	top := make(map[string]int)
-	for _, field := range strings {
+	for _, field := range fields {
 		word := strings.ToLower(field)
 		r, err := regexp.Compile("[^0-9a-zA-Z]+")
 		checkError(err)
